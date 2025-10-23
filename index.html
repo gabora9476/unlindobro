@@ -225,6 +225,17 @@
             transform: scale(1.05);
         }
 
+        /* PORTADA */
+        .cover-image {
+            width: 100%;
+            max-height: 50vh;
+            object-fit: contain;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 8px 25px rgba(217, 70, 166, 0.3);
+            border: 3px solid rgba(217, 70, 166, 0.2);
+        }
+
         /* MEDIA QUERIES MÓVIL */
         @media (max-width: 768px) {
             .book {
@@ -286,7 +297,7 @@
             `<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center;">
                 <h1>Entre el Ser y el Tiempo</h1>
                 <p class="subtitle">Nunca es tarde para aprender</p>
-                <div class="center-emoji">💗</div>
+                <img src="blob:https://aistudio.google.com/a0ff0800-612e-42be-9f44-12bccbc1267b" alt="Nuestra historia" class="cover-image">
                 <p class="text-content" style="font-size:22px;font-style:italic;color:#d946a6;">Quiero contarte una historia...</p>
             </div>`,
             
@@ -374,6 +385,7 @@
                 const page = document.createElement('div');
                 page.className = 'page';
                 page.innerHTML = `<div class="page-content">${content}</div>`;
+                // CORRECCIÓN: Asegurar que el z-index se establezca correctamente
                 page.style.zIndex = pages.length - index;
                 bookEl.appendChild(page);
             });

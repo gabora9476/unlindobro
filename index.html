@@ -15,36 +15,9 @@
         body {
             font-family: 'Crimson Text', 'Georgia', serif;
             overflow: hidden;
-            background: #1a0a1e;
+            background: linear-gradient(135deg, #1a0a1e 0%, #2d1b3d 100%);
             height: 100vh;
             position: relative;
-        }
-
-        /* FONDO ANIMADO */
-        #bgCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-
-        /* PARTÍCULAS FLOTANTES */
-        .particle {
-            position: fixed;
-            pointer-events: none;
-            z-index: 5;
-            font-size: 20px;
-            opacity: 0;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.6; }
-            90% { opacity: 0.6; }
-            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
         }
 
         /* CONTAINER DEL LIBRO */
@@ -82,7 +55,7 @@
                 inset 5px 0 10px rgba(255,255,255,0.5);
             transform-origin: left center;
             transform-style: preserve-3d;
-            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1);
             backface-visibility: hidden;
             overflow: hidden;
         }
@@ -158,12 +131,6 @@
             text-align: center;
             font-size: clamp(40px, 10vw, 70px);
             margin: 30px 0;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
         }
 
         /* NAVEGACIÓN */
@@ -189,8 +156,6 @@
             box-shadow: 0 8px 20px rgba(217, 70, 166, 0.4);
             transition: all 0.3s;
             font-family: inherit;
-            position: relative;
-            overflow: hidden;
         }
 
         .nav-btn:hover {
@@ -231,25 +196,6 @@
             transform: scale(1.2);
         }
 
-        /* BLUR TEXT ANIMATION */
-        .blur-text {
-            animation: blurIn 1.5s ease-out forwards;
-            opacity: 0;
-        }
-
-        @keyframes blurIn {
-            0% {
-                filter: blur(20px);
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            100% {
-                filter: blur(0);
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         /* BOTONES FINALES */
         .final-buttons {
             display: flex;
@@ -270,8 +216,6 @@
             font-family: inherit;
             width: 100%;
             max-width: 350px;
-            position: relative;
-            overflow: hidden;
         }
 
         .btn-yes {
@@ -293,29 +237,6 @@
 
         .btn-no:hover {
             transform: scale(1.05);
-        }
-
-        /* SPARKLE EFFECT */
-        .spark {
-            position: fixed;
-            pointer-events: none;
-            width: 10px;
-            height: 10px;
-            background: radial-gradient(circle, #ff69b4 0%, transparent 70%);
-            border-radius: 50%;
-            animation: sparkle 0.6s ease-out forwards;
-            z-index: 1000;
-        }
-
-        @keyframes sparkle {
-            0% {
-                transform: translate(0, 0) scale(0);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(var(--tx), var(--ty)) scale(1);
-                opacity: 0;
-            }
         }
 
         /* MEDIA QUERIES MÓVIL */
@@ -357,43 +278,9 @@
                 padding: 12px 30px;
             }
         }
-
-        /* ANIMACIÓN DE CARGA */
-        .loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1a0a1e;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.5s;
-        }
-
-        .loader.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loader-heart {
-            font-size: 40px;
-            color: #d946a6;
-            animation: pulse 1.5s infinite;
-        }
     </style>
 </head>
 <body>
-    <!-- LOADER -->
-    <div class="loader" id="loader">
-        <div class="loader-heart">💗</div>
-    </div>
-
-    <!-- CANVAS DE FONDO -->
-    <canvas id="bgCanvas"></canvas>
-
     <!-- LIBRO -->
     <div class="book-container">
         <div class="book">
@@ -411,152 +298,83 @@
     <div class="page-indicators" id="pageIndicators"></div>
 
     <script>
-        // FONDO ANIMADO DARKVEIL
-        const canvas = document.getElementById('bgCanvas');
-        const ctx = canvas.getContext('2d');
-        let time = 0;
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        function drawBackground() {
-            const gradient = ctx.createRadialGradient(
-                canvas.width * 0.3, canvas.height * 0.3, 0,
-                canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.8
-            );
-            
-            const hue1 = 280 + Math.sin(time * 0.001) * 20;
-            const hue2 = 320 + Math.cos(time * 0.0015) * 20;
-            
-            gradient.addColorStop(0, `hsl(${hue1}, 70%, 15%)`);
-            gradient.addColorStop(0.5, `hsl(${hue2}, 60%, 10%)`);
-            gradient.addColorStop(1, 'hsl(280, 50%, 5%)');
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            time++;
-            requestAnimationFrame(drawBackground);
-        }
-        drawBackground();
-
-        // PARTÍCULAS FLOTANTES
-        function createParticle() {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.textContent = ['💗', '🌸', '✨', '💕'][Math.floor(Math.random() * 4)];
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 5 + 's';
-            particle.style.animationDuration = (6 + Math.random() * 4) + 's';
-            document.body.appendChild(particle);
-            
-            setTimeout(() => particle.remove(), 10000);
-        }
-
-        setInterval(createParticle, 2000);
-
-        // SPARKLE EFFECT AL CLICK
-        document.addEventListener('click', (e) => {
-            for (let i = 0; i < 12; i++) {
-                const spark = document.createElement('div');
-                spark.className = 'spark';
-                spark.style.left = e.clientX + 'px';
-                spark.style.top = e.clientY + 'px';
-                
-                const angle = (Math.PI * 2 * i) / 12;
-                const velocity = 30 + Math.random() * 30;
-                const tx = Math.cos(angle) * velocity;
-                const ty = Math.sin(angle) * velocity;
-                
-                spark.style.setProperty('--tx', tx + 'px');
-                spark.style.setProperty('--ty', ty + 'px');
-                
-                document.body.appendChild(spark);
-                setTimeout(() => spark.remove(), 600);
-            }
-        });
-
         // CONTENIDO DE LAS PÁGINAS
         const pages = [
             // Portada
             `<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center;">
-                <h1 class="blur-text" style="animation-delay:0.2s;">Entre el Ser y el Tiempo</h1>
-                <p class="subtitle blur-text" style="animation-delay:0.4s;">Nunca es tarde para aprender</p>
-                <div class="center-emoji" style="animation-delay:0.6s;">💗</div>
-                <p class="text-content blur-text" style="animation-delay:0.8s;font-size:22px;font-style:italic;color:#d946a6;">Quiero contarte una historia...</p>
+                <h1>Entre el Ser y el Tiempo</h1>
+                <p class="subtitle">Nunca es tarde para aprender</p>
+                <div class="center-emoji">💗</div>
+                <p class="text-content" style="font-size:22px;font-style:italic;color:#d946a6;">Quiero contarte una historia...</p>
             </div>`,
             
             // Página 1
-            `<p class="text-content blur-text">Últimamente he sentido un vacío que no puedo ignorar. Esos mensajes que solían alegrar mi día, los buenos días que me hacían sonreír antes de abrir los ojos, las buenas noches que me acompañaban en mis sueños cuando no dormías junto a mí... los extraño.</p>
-            <p class="text-content blur-text" style="animation-delay:0.3s;">Siento que ya no te hago falta, que ya no soy necesario en tu día a día. Y eso, Ana, me duele más de lo que las palabras pueden expresar.</p>
-            <div class="center-emoji blur-text" style="animation-delay:0.6s;">😔</div>`,
+            `<p class="text-content">Últimamente he sentido un vacío que no puedo ignorar. Esos mensajes que solían alegrar mi día, los buenos días que me hacían sonreír antes de abrir los ojos, las buenas noches que me acompañaban en mis sueños cuando no dormías junto a mí... los extraño.</p>
+            <p class="text-content">Siento que ya no te hago falta, que ya no soy necesario en tu día a día. Y eso, Ana, me duele más de lo que las palabras pueden expresar.</p>
+            <div class="center-emoji">😔</div>`,
             
             // Página 2
-            `<img src="https://i.ibb.co/PZK31JZ4/photo-1-2025-10-22-18-38-20.jpg" alt="Momento 1" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">¿Recuerdas este día? Éramos felices...</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">Miro estas fotos y veo lo que fuimos, lo que construimos juntos. Cada sonrisa, cada abrazo, cada momento capturado en el tiempo me recuerda por qué no quiero dejarte ir.</p>`,
+            `<img src="https://i.ibb.co/PZK31JZ4/photo-1-2025-10-22-18-38-20.jpg" alt="Momento 1" class="photo">
+            <p class="photo-caption">¿Recuerdas este día? Éramos felices...</p>
+            <p class="text-content">Miro estas fotos y veo lo que fuimos, lo que construimos juntos. Cada sonrisa, cada abrazo, cada momento capturado en el tiempo me recuerda por qué no quiero dejarte ir.</p>`,
             
             // Página 3
-            `<img src="https://i.ibb.co/q3HZJt0D/photo-2-2025-10-22-18-38-20.jpg" alt="Momento 2" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Tu sonrisa iluminaba todo</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">No quiero presionarte ni molestarte, pero las ganas de no perderte son tan fuertes que necesito decirte todo esto. Si aún queda algo de lo que alguna vez te hice sentir por mí, quiero que lo fortalezcamos.</p>`,
+            `<img src="https://i.ibb.co/q3HZJt0D/photo-2-2025-10-22-18-38-20.jpg" alt="Momento 2" class="photo">
+            <p class="photo-caption">Tu sonrisa iluminaba todo</p>
+            <p class="text-content">No quiero presionarte ni molestarte, pero las ganas de no perderte son tan fuertes que necesito decirte todo esto. Si aún queda algo de lo que alguna vez te hice sentir por mí, quiero que lo fortalezcamos.</p>`,
             
             // Página 4
-            `<img src="https://i.ibb.co/8Lrd5Db1/photo-3-2025-10-22-18-38-20.jpg" alt="Momento 3" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">En la tranquilidad de estar juntos</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">Ya no quiero nada escondido. Quiero poder publicarte conmigo en las contadas fotos que subo. Quiero que tengamos algo bonito, real como lo éramos, y hasta más si es posible.</p>`,
+            `<img src="https://i.ibb.co/8Lrd5Db1/photo-3-2025-10-22-18-38-20.jpg" alt="Momento 3" class="photo">
+            <p class="photo-caption">En la tranquilidad de estar juntos</p>
+            <p class="text-content">Ya no quiero nada escondido. Quiero poder publicarte conmigo en las contadas fotos que subo. Quiero que tengamos algo bonito, real como lo éramos, y hasta más si es posible.</p>`,
             
             // Página 5
-            `<img src="https://i.ibb.co/4nBFSYLp/photo-4-2025-10-22-18-38-20.jpg" alt="Momento 4" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Compartiendo el mundo</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">No paro de pensar en ti, ni en los momentos tan bonitos y locos que tuvimos. Lo que empezó como algo sin sentido para mí, tiene ahora mucho sentido. Y no quiero que se acabe, mi demonio. 💗😈</p>`,
+            `<img src="https://i.ibb.co/4nBFSYLp/photo-4-2025-10-22-18-38-20.jpg" alt="Momento 4" class="photo">
+            <p class="photo-caption">Compartiendo el mundo</p>
+            <p class="text-content">No paro de pensar en ti, ni en los momentos tan bonitos y locos que tuvimos. Lo que empezó como algo sin sentido para mí, tiene ahora mucho sentido. Y no quiero que se acabe, mi demonio. 💗😈</p>`,
             
             // Página 6
-            `<img src="https://i.ibb.co/Z1gsrfvy/photo-5-2025-10-22-18-38-20.jpg" alt="Momento 5" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Robando besos y creando recuerdos</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">Prometo tomar más fotos. Prometo darte el amor que mereces, ese amor que sé que tengo pero que tal vez me cuesta demostrar. Prometo ponerme en tus zapatos y entender lo que necesitas.</p>`,
+            `<img src="https://i.ibb.co/Z1gsrfvy/photo-5-2025-10-22-18-38-20.jpg" alt="Momento 5" class="photo">
+            <p class="photo-caption">Robando besos y creando recuerdos</p>
+            <p class="text-content">Prometo tomar más fotos. Prometo darte el amor que mereces, ese amor que sé que tengo pero que tal vez me cuesta demostrar. Prometo ponerme en tus zapatos y entender lo que necesitas.</p>`,
             
             // Página 7
-            `<img src="https://i.ibb.co/KxWT2v9G/photo-6-2025-10-22-18-38-20.jpg" alt="Momento 6" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Compartiendo alegrías</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">Sé que ambos tenemos cosas que mejorar, nadie es perfecto. Pero en mi balanza del amor, son más las cosas buenas que me das que las negativas. Por eso quiero que nos demos una oportunidad de intentarlo de nuevo.</p>`,
+            `<img src="https://i.ibb.co/KxWT2v9G/photo-6-2025-10-22-18-38-20.jpg" alt="Momento 6" class="photo">
+            <p class="photo-caption">Compartiendo alegrías</p>
+            <p class="text-content">Sé que ambos tenemos cosas que mejorar, nadie es perfecto. Pero en mi balanza del amor, son más las cosas buenas que me das que las negativas. Por eso quiero que nos demos una oportunidad de intentarlo de nuevo.</p>`,
             
             // Página 8
-            `<img src="https://i.ibb.co/RkP5YHcZ/photo-7-2025-10-22-18-38-20.jpg" alt="Momento 7" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Donde todo tenía sentido</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">Sin secretos, sin distracciones. Enfocándonos en tener algo más bonito de lo que teníamos. Salidas, paseos, regalos, y muchas cosas más. Si me hacía falta una motivación, es la de no perderte.</p>`,
+            `<img src="https://i.ibb.co/RkP5YHcZ/photo-7-2025-10-22-18-38-20.jpg" alt="Momento 7" class="photo">
+            <p class="photo-caption">Donde todo tenía sentido</p>
+            <p class="text-content">Sin secretos, sin distracciones. Enfocándonos en tener algo más bonito de lo que teníamos. Salidas, paseos, regalos, y muchas cosas más. Si me hacía falta una motivación, es la de no perderte.</p>`,
             
             // Página 9
-            `<img src="https://i.ibb.co/8gDRCFTf/photo-9-2025-10-22-18-38-20.jpg" alt="Momento 8" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Así quiero verte siempre: sonriendo a mi lado</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">Tal vez creas que no hay nada que hacer, pero si me amas como yo a ti, estoy seguro de que podemos salir de esta y de cualquier cosa que se nos atraviese. Después de la tormenta viene la calma, y ahí veremos los frutos. 🌹</p>`,
+            `<img src="https://i.ibb.co/8gDRCFTf/photo-9-2025-10-22-18-38-20.jpg" alt="Momento 8" class="photo">
+            <p class="photo-caption">Así quiero verte siempre: sonriendo a mi lado</p>
+            <p class="text-content">Tal vez creas que no hay nada que hacer, pero si me amas como yo a ti, estoy seguro de que podemos salir de esta y de cualquier cosa que se nos atraviese. Después de la tormenta viene la calma, y ahí veremos los frutos. 🌹</p>`,
             
             // Página 10
-            `<img src="https://i.ibb.co/GQ7pjTFc/photo-10-2025-10-22-18-38-20.jpg" alt="Momento 9" class="photo blur-text">
-            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Hasta los pequeños momentos son especiales contigo</p>
-            <p class="text-content blur-text" style="animation-delay:0.5s;">Haré todo lo que deba hacer. Solo te pido que me esperes un poquito más... Te prometo que todo estará bien y será mejor que esto. Quiero un futuro bonito contigo, mi corazón rosa. 💗</p>`,
+            `<img src="https://i.ibb.co/GQ7pjTFc/photo-10-2025-10-22-18-38-20.jpg" alt="Momento 9" class="photo">
+            <p class="photo-caption">Hasta los pequeños momentos son especiales contigo</p>
+            <p class="text-content">Haré todo lo que deba hacer. Solo te pido que me esperes un poquito más... Te prometo que todo estará bien y será mejor que esto. Quiero un futuro bonito contigo, mi corazón rosa. 💗</p>`,
             
             // Página Final
             `<div style="text-align:center;">
-                <p class="text-content blur-text" style="font-size:20px;animation-delay:0.2s;">No hay muchas imágenes de todo lo lindo que hemos vivido, pero por ti compraría un álbum de un millón de hojas para guardar todos los momentos contigo.</p>
-                <div class="center-emoji blur-text" style="animation-delay:0.4s;">💗</div>
-                <h1 class="blur-text" style="font-size:clamp(32px,8vw,56px);animation-delay:0.6s;">¿Quieres ser mi novia?</h1>
-                <p class="text-content blur-text" style="animation-delay:0.8s;font-size:18px;">Quiero estar contigo, aprender contigo, crecer contigo...</p>
+                <p class="text-content" style="font-size:20px;">No hay muchas imágenes de todo lo lindo que hemos vivido, pero por ti compraría un álbum de un millón de hojas para guardar todos los momentos contigo.</p>
+                <div class="center-emoji">💗</div>
+                <h1 style="font-size:clamp(32px,8vw,56px);">¿Quieres ser mi novia?</h1>
+                <p class="text-content" style="font-size:18px;">Quiero estar contigo, aprender contigo, crecer contigo...</p>
                 <div class="final-buttons">
-                    <button class="final-btn btn-yes blur-text" style="animation-delay:1s;" onclick="window.location.href='https://wa.me/584242791824?text=Sí%20quiero%20intentarlo%20de%20nuevo%20contigo%20💗'">Sí, lo intentemos 💗</button>
-                    <button class="final-btn btn-no blur-text" style="animation-delay:1.2s;" onclick="showSadPage()">No puedo...</button>
+                    <button class="final-btn btn-yes" onclick="window.location.href='https://wa.me/584242791824?text=Sí%20quiero%20intentarlo%20de%20nuevo%20contigo%20💗'">Sí, lo intentemos 💗</button>
+                    <button class="final-btn btn-no" onclick="showSadPage()">No puedo...</button>
                 </div>
             </div>`,
             
             // Página de Rechazo
             `<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center;">
                 <div class="center-emoji">😢</div>
-                <h1 class="blur-text" style="font-size:clamp(28px,7vw,42px);animation-delay:0.3s;">Entiendo... y respeto tu decisión.</h1>
-                <p class="text-content blur-text" style="animation-delay:0.6s;font-size:22px;color:#d946a6;">Siempre te amaré, mi demonio. Cuídate mucho. 💔</p>
+                <h1 style="font-size:clamp(28px,7vw,42px);">Entiendo... y respeto tu decisión.</h1>
+                <p class="text-content" style="font-size:22px;color:#d946a6;">Siempre te amaré, mi demonio. Cuídate mucho. 💔</p>
             </div>`
         ];
 
@@ -584,11 +402,6 @@
             }
             
             updateNav();
-            
-            // Ocultar loader después de cargar
-            setTimeout(() => {
-                document.getElementById('loader').classList.add('hidden');
-            }, 1000);
         }
 
         function nextPage() {
@@ -611,7 +424,7 @@
                 
                 setTimeout(() => {
                     isAnimating = false;
-                }, 800);
+                }, 600);
             }
         }
 
@@ -635,7 +448,7 @@
                 
                 setTimeout(() => {
                     isAnimating = false;
-                }, 800);
+                }, 600);
             }
         }
 

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entre el Ser y el Tiempo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            overflow: hidden;
+            background: #1a0a1e;
+            height: 100vh;
+        }
+
+        /* FONDO ANIMADO */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* PARTÍCULAS FLOTANTES */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 5;
+            font-size: 20px;
+            opacity: 0;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* CONTAINER DEL LIBRO */
+        .book-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            perspective: 2000px;
+            padding: 20px;
+        }
+
+        /* LIBRO */
+        .book {
+            position: relative;
+            width: 90vw;
+            max-width: 700px;
+            height: 85vh;
+            max-height: 900px;
+            transform-style: preserve-3d;
+        }
+
+        /* PÁGINAS DEL LIBRO */
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #fffef8 0%, #ffffff 3%, #ffffff 97%, #f5f5f0 100%);
+            border-radius: 0 15px 15px 0;
+            box-shadow: 
+                0 10px 50px rgba(0,0,0,0.3),
+                inset -5px 0 20px rgba(0,0,0,0.1),
+                inset 5px 0 10px rgba(255,255,255,0.5);
+            transform-origin: left center;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+            backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .page.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        /* CONTENIDO DE LA PÁGINA */
+        .page-content {
+            padding: 40px 35px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .page-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .page-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 105, 180, 0.3);
+            border-radius: 3px;
+        }
+
+        /* TEXTOS */
+        h1 {
+            font-size: clamp(28px, 7vw, 48px);
+            color: #d946a6;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: clamp(16px, 4vw, 22px);
+            color: #9333ea;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .text-content {
+            font-size: clamp(15px, 3.5vw, 18px);
+            line-height: 1.8;
+            color: #2d1b3d;
+            text-align: justify;
+            margin-bottom: 20px;
+        }
+
+        .photo {
+            width: 100%;
+            max-height: 350px;
+            object-fit: contain;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 8px 25px rgba(217, 70, 166, 0.3);
+            border: 3px solid rgba(217, 70, 166, 0.2);
+        }
+
+        .photo-caption {
+            text-align: center;
+            color: #d946a6;
+            font-style: italic;
+            font-size: clamp(13px, 3vw, 16px);
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .center-emoji {
+            text-align: center;
+            font-size: clamp(50px, 12vw, 80px);
+            margin: 30px 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* NAVEGACIÓN */
+        .nav-buttons {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            padding: 15px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #d946a6, #9333ea);
+            color: white;
+            box-shadow: 0 8px 25px rgba(217, 70, 166, 0.4);
+            transition: all 0.3s;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(217, 70, 166, 0.6);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* PÁGINA CONTADOR */
+        .page-counter {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #d946a6;
+            font-size: 14px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* BLUR TEXT ANIMATION */
+        .blur-text {
+            animation: blurIn 1.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes blurIn {
+            0% {
+                filter: blur(20px);
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                filter: blur(0);
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* BOTONES FINALES */
+        .final-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 40px;
+            align-items: center;
+        }
+
+        .final-btn {
+            padding: 20px 50px;
+            font-size: clamp(18px, 4vw, 24px);
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s;
+            font-family: inherit;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+            color: white;
+            box-shadow: 0 10px 40px rgba(255, 20, 147, 0.5);
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 50px rgba(255, 20, 147, 0.7);
+        }
+
+        .btn-no {
+            background: linear-gradient(135deg, #6b7280, #9ca3af);
+            color: white;
+            box-shadow: 0 10px 40px rgba(107, 114, 128, 0.4);
+        }
+
+        .btn-no:hover {
+            transform: scale(1.05);
+        }
+
+        /* SPARKLE EFFECT */
+        .spark {
+            position: fixed;
+            pointer-events: none;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #ff69b4 0%, transparent 70%);
+            border-radius: 50%;
+            animation: sparkle 0.6s ease-out forwards;
+            z-index: 1000;
+        }
+
+        @keyframes sparkle {
+            0% {
+                transform: translate(0, 0) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* MEDIA QUERIES MÓVIL */
+        @media (max-width: 768px) {
+            .book {
+                width: 95vw;
+                height: 80vh;
+            }
+
+            .page-content {
+                padding: 25px 20px;
+            }
+
+            .nav-buttons {
+                bottom: 20px;
+                gap: 15px;
+            }
+
+            .nav-btn {
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+
+            .page-counter {
+                bottom: 70px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-content {
+                padding: 20px 15px;
+            }
+
+            .final-buttons {
+                gap: 15px;
+            }
+
+            .final-btn {
+                padding: 18px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- CANVAS DE FONDO -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- LIBRO -->
+    <div class="book-container">
+        <div class="book">
+            <!-- Las páginas se generarán dinámicamente -->
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <div class="nav-buttons">
+        <button class="nav-btn" id="prevBtn" onclick="prevPage()">← Anterior</button>
+        <button class="nav-btn" id="nextBtn" onclick="nextPage()">Siguiente →</button>
+    </div>
+    <div class="page-counter" id="pageCounter"></div>
+
+    <script>
+        // FONDO ANIMADO DARKVEIL
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let time = 0;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawBackground() {
+            const gradient = ctx.createRadialGradient(
+                canvas.width * 0.3, canvas.height * 0.3, 0,
+                canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.8
+            );
+            
+            const hue1 = 280 + Math.sin(time * 0.001) * 20;
+            const hue2 = 320 + Math.cos(time * 0.0015) * 20;
+            
+            gradient.addColorStop(0, `hsl(${hue1}, 70%, 15%)`);
+            gradient.addColorStop(0.5, `hsl(${hue2}, 60%, 10%)`);
+            gradient.addColorStop(1, 'hsl(280, 50%, 5%)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            time++;
+            requestAnimationFrame(drawBackground);
+        }
+        drawBackground();
+
+        // PARTÍCULAS FLOTANTES
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.textContent = ['💗', '🌸', '✨', '💕'][Math.floor(Math.random() * 4)];
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+            document.body.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 10000);
+        }
+
+        setInterval(createParticle, 2000);
+
+        // SPARKLE EFFECT AL CLICK
+        document.addEventListener('click', (e) => {
+            for (let i = 0; i < 12; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'spark';
+                spark.style.left = e.clientX + 'px';
+                spark.style.top = e.clientY + 'px';
+                
+                const angle = (Math.PI * 2 * i) / 12;
+                const velocity = 30 + Math.random() * 30;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+                
+                spark.style.setProperty('--tx', tx + 'px');
+                spark.style.setProperty('--ty', ty + 'px');
+                
+                document.body.appendChild(spark);
+                setTimeout(() => spark.remove(), 600);
+            }
+        });
+
+        // CONTENIDO DE LAS PÁGINAS
+        const pages = [
+            // Portada
+            `<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center;">
+                <h1 class="blur-text" style="animation-delay:0.2s;">Entre el Ser y el Tiempo</h1>
+                <p class="subtitle blur-text" style="animation-delay:0.4s;">Nunca es tarde para aprender</p>
+                <div class="center-emoji" style="animation-delay:0.6s;">💗</div>
+                <p class="text-content blur-text" style="animation-delay:0.8s;font-size:22px;font-style:italic;color:#d946a6;">Quiero contarte una historia...</p>
+                <p class="text-content blur-text" style="animation-delay:1s;max-width:400px;">Una historia sobre nosotros, sobre momentos, sobre lo que significa realmente amar.</p>
+            </div>`,
+            
+            // Página 1
+            `<p class="text-content blur-text">Últimamente he sentido un vacío que no puedo ignorar. Esos mensajes que solían alegrar mi día, los buenos días que me hacían sonreír antes de abrir los ojos, las buenas noches que me acompañaban en mis sueños cuando no dormías junto a mí... los extraño.</p>
+            <p class="text-content blur-text" style="animation-delay:0.3s;">Siento que ya no te hago falta, que ya no soy necesario en tu día a día. Y eso, Ana, me duele más de lo que las palabras pueden expresar.</p>
+            <div class="center-emoji blur-text" style="animation-delay:0.6s;">😔</div>`,
+            
+            // Página 2
+            `<img src="https://i.ibb.co/PZK31JZ4/photo-1-2025-10-22-18-38-20.jpg" alt="Momento 1" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">¿Recuerdas este día? Éramos felices...</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">Miro estas fotos y veo lo que fuimos, lo que construimos juntos. Cada sonrisa, cada abrazo, cada momento capturado en el tiempo me recuerda por qué no quiero dejarte ir.</p>`,
+            
+            // Página 3
+            `<img src="https://i.ibb.co/q3HZJt0D/photo-2-2025-10-22-18-38-20.jpg" alt="Momento 2" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Tu sonrisa iluminaba todo</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">No quiero presionarte ni molestarte, pero las ganas de no perderte son tan fuertes que necesito decirte todo esto. Si aún queda algo de lo que alguna vez te hice sentir por mí, quiero que lo fortalezcamos.</p>`,
+            
+            // Página 4
+            `<img src="https://i.ibb.co/8Lrd5Db1/photo-3-2025-10-22-18-38-20.jpg" alt="Momento 3" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">En la tranquilidad de estar juntos</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">Ya no quiero nada escondido. Quiero poder publicarte conmigo en las contadas fotos que subo. Quiero que tengamos algo bonito, real como lo éramos, y hasta más si es posible.</p>`,
+            
+            // Página 5
+            `<img src="https://i.ibb.co/4nBFSYLp/photo-4-2025-10-22-18-38-20.jpg" alt="Momento 4" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Compartiendo el mundo</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">No paro de pensar en ti, ni en los momentos tan bonitos y locos que tuvimos. Lo que empezó como algo sin sentido para mí, tiene ahora mucho sentido. Y no quiero que se acabe, mi demonio. 💗😈</p>`,
+            
+            // Página 6
+            `<img src="https://i.ibb.co/Z1gsrfvy/photo-5-2025-10-22-18-38-20.jpg" alt="Momento 5" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Robando besos y creando recuerdos</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">Prometo tomar más fotos. Prometo darte el amor que mereces, ese amor que sé que tengo pero que tal vez me cuesta demostrar. Prometo ponerme en tus zapatos y entender lo que necesitas.</p>`,
+            
+            // Página 7
+            `<img src="https://i.ibb.co/KxWT2v9G/photo-6-2025-10-22-18-38-20.jpg" alt="Momento 6" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Compartiendo alegrías</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">Sé que ambos tenemos cosas que mejorar, nadie es perfecto. Pero en mi balanza del amor, son más las cosas buenas que me das que las negativas. Por eso quiero que nos demos una oportunidad de intentarlo de nuevo.</p>`,
+            
+            // Página 8
+            `<img src="https://i.ibb.co/RkP5YHcZ/photo-7-2025-10-22-18-38-20.jpg" alt="Momento 7" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Donde todo tenía sentido</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">Sin secretos, sin distracciones. Enfocándonos en tener algo más bonito de lo que teníamos. Salidas, paseos, regalos, y muchas cosas más. Si me hacía falta una motivación, es la de no perderte.</p>`,
+            
+            // Página 9
+            `<img src="https://i.ibb.co/8gDRCFTf/photo-9-2025-10-22-18-38-20.jpg" alt="Momento 8" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Así quiero verte siempre: sonriendo a mi lado</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">Tal vez creas que no hay nada que hacer, pero si me amas como yo a ti, estoy seguro de que podemos salir de esta y de cualquier cosa que se nos atraviese. Después de la tormenta viene la calma, y ahí veremos los frutos. 🌹</p>`,
+            
+            // Página 10
+            `<img src="https://i.ibb.co/GQ7pjTFc/photo-10-2025-10-22-18-38-20.jpg" alt="Momento 9" class="photo blur-text">
+            <p class="photo-caption blur-text" style="animation-delay:0.3s;">Hasta los pequeños momentos son especiales contigo</p>
+            <p class="text-content blur-text" style="animation-delay:0.5s;">Haré todo lo que deba hacer. Solo te pido que me esperes un poquito más... Te prometo que todo estará bien y será mejor que esto. Quiero un futuro bonito contigo, mi corazón rosa. 💗</p>`,
+            
+            // Página Final
+            `<div style="text-align:center;">
+                <p class="text-content blur-text" style="font-size:20px;animation-delay:0.2s;">No hay muchas imágenes de todo lo lindo que hemos vivido, pero por ti compraría un álbum de un millón de hojas para guardar todos los momentos contigo.</p>
+                <div class="center-emoji blur-text" style="animation-delay:0.4s;">💗</div>
+                <h1 class="blur-text" style="font-size:clamp(32px,8vw,56px);animation-delay:0.6s;">¿Quieres ser mi novia?</h1>
+                <p class="text-content blur-text" style="animation-delay:0.8s;font-size:18px;">Quiero estar contigo, aprender contigo, crecer contigo...</p>
+                <div class="final-buttons">
+                    <button class="final-btn btn-yes blur-text" style="animation-delay:1s;" onclick="window.location.href='https://wa.me/584242791824?text=Sí%20quiero%20intentarlo%20de%20nuevo%20contigo%20💗'">Sí, lo intentemos 💗</button>
+                    <button class="final-btn btn-no blur-text" style="animation-delay:1.2s;" onclick="showSadPage()">No puedo...</button>
+                </div>
+            </div>`,
+            
+            // Página de Rechazo
+            `<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center;">
+                <div class="center-emoji">😢</div>
+                <h1 class="blur-text" style="font-size:clamp(28px,7vw,42px);animation-delay:0.3s;">Entiendo... y respeto tu decisión.</h1>
+                <p class="text-content blur-text" style="animation-delay:0.6s;font-size:22px;color:#d946a6;">Siempre te amaré, mi demonio. Cuídate mucho. 💔</p>
+            </div>`
+        ];
+
+        let currentPage = 0;
+        const bookEl = document.querySelector('.book');
+
+        // CREAR PÁGINAS
+        function createPages() {
+            pages.forEach((content, index) => {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-content">${content}</div>`;
+                page.style.zIndex = pages.length - index;
+                bookEl.appendChild(page);
+            });
+            updateNav();
+        }
+
+        function nextPage() {
+            if (currentPage < pages.length - 1) {
+                const pageEl = bookEl.children[currentPage];
+                pageEl.classList.add('flipped');
+                currentPage++;
+                updateNav();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                const pageEl = bookEl.children[currentPage];
+                pageEl.classList.remove('flipped');
+                updateNav();
+            }
+        }
+
+        function showSadPage() {
+            nextPage();
+            setTimeout(() => window.close(), 8000);
+        }
+
+        function updateNav() {
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = currentPage === pages.length - 1;
+            document.getElementById('nextBtn').style.display = currentPage === pages.length - 2 ? 'none' : 'block';
+            
+            const counter = document.getElementById('pageCounter');
+            if (currentPage < pages.length - 1) {
+                counter.textContent = `Página ${currentPage + 1} de ${pages.length - 1}`;
+                counter.style.display = 'block';
+            } else {
+                counter.style.display = 'none';
+            }
+        }
+
+        // TECLAS DE NAVEGACIÓN
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextPage();
+            if (e.key === 'ArrowLeft') prevPage();
+        });
+
+        // SWIPE EN MÓVIL
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX - 50) nextPage();
+            if (touchEndX > touchStartX + 50) prevPage();
+        });
+
+        // INICIALIZAR
+        createPages();
+    </script>
+</body>
+</html>
